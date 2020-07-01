@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import api from "./services/api";
 
 import {
   SafeAreaView,
@@ -11,51 +12,113 @@ import {
 } from "react-native";
 
 export default function App() {
+  const [repositories, setRepositories] = useState([]);
+
+  useEffect(() => {
+    api.get('repositories')
+      .then(response => setRepositories(response.data),)
+      .catch((e) => console.log("api error", e))
+  }, []);
+
+
+
+
   async function handleLikeRepository(id) {
-    // Implement "Like Repository" functionality
+    const response = await api.post(`repositories/${id}/like`);
+
+    setRepositories([response.data,...repositories.filter(rep => rep.id !== id)]);
   }
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="#7159c1" />
+      <StatusBar barStyle="dark-content" backgroundColor="#7159c1cc" />
       <SafeAreaView style={styles.container}>
-        <View style={styles.repositoryContainer}>
-          <Text style={styles.repository}>Repository 1</Text>
+        <Text style={styles.title}>Repositories</Text>
+        <Text style={styles.challenge}>Challenge #3 mobile</Text>
 
-          <View style={styles.techsContainer}>
-            <Text style={styles.tech}>
-              ReactJS
-            </Text>
-            <Text style={styles.tech}>
-              Node.js
-            </Text>
-          </View>
+        <FlatList
+          data={repositories}
+          renderItem={({ item: repository }) => (
+            <View style={styles.repositoryContainer}>
+              <Text style={styles.repository}>{repository.title}</Text>
 
-          <View style={styles.likesContainer}>
-            <Text
-              style={styles.likeText}
-              // Remember to replace "1" below with repository ID: {`repository-likes-${repository.id}`}
-              testID={`repository-likes-1`}
-            >
-              3 curtidas
-            </Text>
-          </View>
+              <View style={styles.techsContainer}>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => handleLikeRepository(1)}
-            // Remember to replace "1" below with repository ID: {`like-button-${repository.id}`}
-            testID={`like-button-1`}
-          >
-            <Text style={styles.buttonText}>Curtir</Text>
-          </TouchableOpacity>
-        </View>
+                {
+                  repository.techs.map(tech => (
+
+                    <Text key={tech} style={styles.tech}>
+                      {tech}
+                    </Text>
+                  ))
+                }
+
+
+              </View>
+
+
+              <View style={styles.likesContainer}>
+                <Text
+                  style={styles.likeText}
+                  
+                  testID={`repository-likes-${repository.id}`}
+                >
+                  {`${repository.likes} curtidas`}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => handleLikeRepository(repository.id)}
+               
+                testID={`like-button-${repository.id}`}
+              >
+                <Text style={styles.buttonText}>Curtir</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+        />
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => alert( "*TODO*" )}
+
+        >
+          <Text style={styles.bottom}>Criar repositório</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  title: {
+    fontSize: 36,
+    fontWeight: "bold",
+    textAlign: "center",
+    margin: 40,
+    color: "black"
+  },
+  challenge: {
+    fontSize: 18,
+    fontWeight: "200",
+    textAlign: "center",
+    margin: 5,
+    paddingBottom: 10,
+    color: "silver"
+  },
+  bottom: {
+    fontSize: 14,
+    fontWeight: "bold",
+    width: "90%",
+    color: "#fff",
+    backgroundColor: "#04d361cc",
+    padding: 15,
+    textAlign: "center",
+    borderRadius: 6,
+    margin: 20
+  },
   container: {
     flex: 1,
     backgroundColor: "#7159c1",
@@ -95,13 +158,18 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 10,
+    justifyContent: "center",
+    alignItems: "center"
   },
   buttonText: {
     fontSize: 14,
     fontWeight: "bold",
+    width: "100%",
+    borderRadius: 4,
     marginRight: 10,
     color: "#fff",
     backgroundColor: "#7159c1",
     padding: 15,
+    textAlign: "center"
   },
 });
